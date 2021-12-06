@@ -88,6 +88,9 @@ export class Props {
 
   public maxScale?: number;
 
+  // 是否显示原始图片，如果为true则不会对图片进行压缩
+  public showOriginImage: boolean = false;
+
   /**
    * 是否预加载图片
    */

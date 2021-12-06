@@ -434,8 +434,8 @@ export default class ImageViewer extends React.Component<Props, State> {
    */
   public getContent() {
     // 获得屏幕宽高
-    const screenWidth = this.width;
-    const screenHeight = this.height;
+    const screenWidth = this.width || Dimensions.get('window').width;
+    const screenHeight = this.height || Dimensions.get('window').height;
 
     const ImageElements = this.props.imageUrls.map((image, index) => {
       if ((this.state.currentShowIndex || 0) > index + 1 || (this.state.currentShowIndex || 0) < index - 1) {
@@ -454,18 +454,30 @@ export default class ImageViewer extends React.Component<Props, State> {
         return <View key={index} style={{ width: screenWidth, height: screenHeight }} />;
       }
 
-      // 如果宽大于屏幕宽度,整体缩放到宽度是屏幕宽度
-      if (width > screenWidth) {
-        const widthPixel = screenWidth / width;
-        width *= widthPixel;
-        height *= widthPixel;
-      }
+      let _minScale = this.props.minScale
+      let _initScale = 1
+      if (!this.props.showOriginImage) {
+        // 如果宽大于屏幕宽度,整体缩放到宽度是屏幕宽度
+        if (width > screenWidth) {
+          const widthPixel = screenWidth / width;
+          width *= widthPixel;
+          height *= widthPixel;
+        }
 
-      // 如果此时高度还大于屏幕高度,整体缩放到高度是屏幕高度
-      if (height > screenHeight) {
-        const HeightPixel = screenHeight / height;
-        width *= HeightPixel;
-        height *= HeightPixel;
+        // 如果此时高度还大于屏幕高度,整体缩放到高度是屏幕高度
+        if (height > screenHeight) {
+          const HeightPixel = screenHeight / height;
+          width *= HeightPixel;
+          height *= HeightPixel;
+        }
+      }
+      else {
+        if (!_minScale) {
+            _minScale = Math.min(screenWidth / width, screenHeight / height)
+        }
+        if (_minScale < 1 && _minScale > 0) {
+            _initScale = _minScale
+        }
       }
 
       const Wrapper = ({ children, ...others }: any) => (
@@ -557,8 +569,10 @@ export default class ImageViewer extends React.Component<Props, State> {
               pinchToZoom={this.props.enableImageZoom && !this.state.isShowMenu}
               enableDoubleClickZoom={this.props.enableImageZoom && !this.state.isShowMenu}
               doubleClickInterval={this.props.doubleClickInterval}
-              minScale={this.props.minScale}
+              minScale={_minScale}
+              initScale={_initScale}
               maxScale={this.props.maxScale}
+              enableCenterFocus={!this.props.showOriginImage}
             >
               {this!.props!.renderImage!(image.props)}
             </ImageZoom>
